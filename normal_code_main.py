@@ -73,23 +73,34 @@ class NormalMainScraper:
             return None
 
     async def upload_files_with_retry(self, drive_saver, files: List[str]) -> List[str]:
-        """Upload files to Google Drive with retry mechanism."""
+        """Upload files to Google Drive with retry mechanism and folder management."""
         uploaded_files = []
+        yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
-        for file in files:
-            for attempt in range(self.upload_retries):
-                try:
-                    if os.path.exists(file):
-                        drive_saver.save_files([file])
-                        uploaded_files.append(file)
-                        self.logger.info(f"Successfully uploaded {file} to Google Drive")
-                        break
-                except Exception as e:
-                    self.logger.error(f"Upload attempt {attempt + 1} failed for {file}: {e}")
-                    if attempt < self.upload_retries - 1:
-                        await asyncio.sleep(self.upload_retry_delay)
-                    else:
-                        self.logger.error(f"Failed to upload {file} after {self.upload_retries} attempts")
+        try:
+            # Check if the folder exists
+            folder_id = drive_saver.get_folder_id(yesterday)
+            if not folder_id:
+                folder_id = drive_saver.create_folder(yesterday)
+                self.logger.info(f"Created new folder for {yesterday}")
+
+            for file in files:
+                for attempt in range(self.upload_retries):
+                    try:
+                        if os.path.exists(file):
+                            drive_saver.save_files([file], folder_id=folder_id)
+                            uploaded_files.append(file)
+                            self.logger.info(f"Successfully uploaded {file} to Google Drive folder {yesterday}")
+                            break
+                    except Exception as e:
+                        self.logger.error(f"Upload attempt {attempt + 1} failed for {file}: {e}")
+                        if attempt < self.upload_retries - 1:
+                            await asyncio.sleep(self.upload_retry_delay)
+                        else:
+                            self.logger.error(f"Failed to upload {file} after {self.upload_retries} attempts")
+
+        except Exception as e:
+            self.logger.error(f"Error managing Google Drive folder for {yesterday}: {e}")
 
         return uploaded_files
 
@@ -163,11 +174,9 @@ if __name__ == "__main__":
         "عربات الطعام": [("https://www.q84sale.com/ar/automotive/food-trucks/{}", 1)],
     }
 
-
     async def main():
         scraper = NormalMainScraper(automotives_data)
         await scraper.scrape_all_automotives()
-
 
     # Run everything in the async event loop
     asyncio.run(main())
