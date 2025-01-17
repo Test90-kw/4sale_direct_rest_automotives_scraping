@@ -1,0 +1,102 @@
+2025-01-12 04:31:23,282 - INFO - Starting to scrape ”Ì«—«  ﬂ·«”ÌﬂÌ…
+2025-01-12 04:31:25,369 - INFO - Starting to scrape ”Ì«—«  ”ﬂ—«»
+2025-01-12 04:40:58,874 - ERROR - Error scraping https://www.q84sale.com/ar/automotive/classic-cars/1: 'NoneType' object has no attribute 'split'
+2025-01-12 04:45:57,015 - ERROR - Error scraping https://www.q84sale.com/ar/automotive/junk-cars/1: 'NoneType' object has no attribute 'split'
+2025-01-12 04:47:34,783 - ERROR - Error scraping https://www.q84sale.com/ar/automotive/classic-cars/2: 'NoneType' object has no attribute 'split'
+2025-01-12 04:48:17,323 - ERROR - Error scraping https://www.q84sale.com/ar/automotive/junk-cars/2: Page.close: Connection closed while reading from the driver
+2025-01-12 04:48:17,896 - ERROR - Error scraping https://www.q84sale.com/ar/automotive/classic-cars/3: Page.close: Connection closed while reading from the driver
+2025-01-12 04:48:56,499 - INFO - Successfully saved data for ”Ì«—«  ﬂ·«”ÌﬂÌ…
+2025-01-12 04:50:00,192 - ERROR - Future exception was never retrieved
+future: <Future finished exception=TargetClosedError('Target page, context or browser has been closed')>
+playwright._impl._errors.TargetClosedError: Target page, context or browser has been closed
+2025-01-12 04:51:43,810 - INFO - Starting to scrape ”Ì«—«  ﬂ·«”ÌﬂÌ…
+2025-01-12 04:51:45,893 - INFO - Starting to scrape ”Ì«—«  ”ﬂ—«»
+2025-01-12 04:55:11,768 - INFO - Starting to scrape ”Ì«—«  ﬂ·«”ÌﬂÌ…
+2025-01-12 04:55:13,780 - INFO - Starting to scrape ”Ì«—«  ”ﬂ—«»
+2025-01-12 05:03:27,788 - ERROR - Error scraping https://www.q84sale.com/ar/automotive/classic-cars/1: 'NoneType' object has no attribute 'split'
+2025-01-12 05:06:19,312 - ERROR - Error scraping https://www.q84sale.com/ar/automotive/junk-cars/1: 'NoneType' object has no attribute 'split'
+2025-01-12 05:08:10,081 - INFO - Successfully saved data for ”Ì«—«  ﬂ·«”ÌﬂÌ…
+2025-01-12 05:08:10,708 - INFO - Successfully saved data for ”Ì«—«  ”ﬂ—«»
+2025-01-12 05:27:53,676 - INFO - Starting to scrape ⁄—»«  «·ÿ⁄«„
+2025-01-12 05:35:29,917 - INFO - Successfully saved data for ⁄—»«  «·ÿ⁄«„
+2025-01-12 07:10:28,640 - INFO - Starting to scrape «·Êﬂ«·« 
+2025-01-12 07:10:37,649 - INFO - Starting to scrape œ—«Ã« 
+2025-01-12 07:14:39,431 - INFO - Starting to scrape «·Êﬂ«·« 
+2025-01-12 07:14:41,447 - INFO - Starting to scrape œ—«Ã« 
+2025-01-12 07:14:50,211 - INFO - Scraped data for «·Êﬂ«·« : {}
+2025-01-12 07:14:50,337 - INFO - Scraped data for œ—«Ã« : {}
+2025-01-12 07:19:43,985 - INFO - Starting to scrape «·Êﬂ«·« 
+2025-01-12 07:19:45,981 - INFO - Starting to scrape œ—«Ã« 
+2025-01-12 07:20:04,083 - INFO - Scraped data for «·Êﬂ«·« : {}
+2025-01-12 07:20:04,087 - INFO - Scraped data for œ—«Ã« : {}
+2025-01-12 07:23:09,670 - INFO - Starting to scrape «·Êﬂ«·« 
+2025-01-12 07:23:11,668 - INFO - Starting to scrape œ—«Ã« 
+2025-01-12 07:24:02,652 - ERROR - Task exception was never retrieved
+future: <Task finished name='Task-6' coro=<HierarchialMainScraper.scrape_automotive() done, defined at F:\DataLoops\rest_automotives_python_4sale\hierarchial_code_main.py:62> exception=NameError("name 'DetailsScraping' is not defined")>
+Traceback (most recent call last):
+  File "C:\Python311\Lib\asyncio\tasks.py", line 267, in __step
+    result = coro.send(None)
+             ^^^^^^^^^^^^^^^
+  File "F:\DataLoops\rest_automotives_python_4sale\hierarchial_code_main.py", line 69, in scrape_automotive
+    brands_and_types = await car_scraper.scrape_brands_and_types()
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\DataLoops\rest_automotives_python_4sale\CarScraper.py", line 41, in scrape_brands_and_types
+    details_scraper = DetailsScraping(full_brand_link)
+                      ^^^^^^^^^^^^^^^
+NameError: name 'DetailsScraping' is not defined
+2025-01-12 07:27:44,197 - INFO - Starting to scrape «·Êﬂ«·« 
+2025-01-12 07:27:46,218 - INFO - Starting to scrape œ—«Ã« 
+2025-01-12 07:29:35,198 - INFO - Starting to scrape «·Êﬂ«·« 
+2025-01-12 07:29:37,199 - INFO - Starting to scrape œ—«Ã« 
+2025-01-12 07:32:43,818 - INFO - Starting to scrape «·Êﬂ«·« 
+2025-01-12 07:32:45,836 - INFO - Starting to scrape œ—«Ã« 
+2025-01-12 07:33:27,083 - ERROR - Task exception was never retrieved
+future: <Task finished name='Task-6' coro=<HierarchialMainScraper.scrape_automotive() done, defined at F:\DataLoops\rest_automotives_python_4sale\hierarchial_code_main.py:60> exception=NameError("name 'DetailsScraping' is not defined")>
+Traceback (most recent call last):
+  File "C:\Python311\Lib\asyncio\tasks.py", line 267, in __step
+    result = coro.send(None)
+             ^^^^^^^^^^^^^^^
+  File "F:\DataLoops\rest_automotives_python_4sale\hierarchial_code_main.py", line 68, in scrape_automotive
+    brands_and_types = await car_scraper.scrape_brands_and_types()
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\DataLoops\rest_automotives_python_4sale\CarScraper.py", line 41, in scrape_brands_and_types
+    details_scraper = DetailsScraping(full_brand_link)
+                      ^^^^^^^^^^^^^^^
+NameError: name 'DetailsScraping' is not defined
+2025-01-12 07:38:02,971 - INFO - Starting to scrape «·Êﬂ«·« 
+2025-01-12 07:38:04,971 - INFO - Starting to scrape œ—«Ã« 
+2025-01-12 07:38:35,806 - INFO - Starting to scrape «·Êﬂ«·« 
+2025-01-12 07:38:37,821 - INFO - Starting to scrape œ—«Ã« 
+2025-01-16 19:03:02,268 - ERROR - Attempt 1 failed for https://www.q84sale.com/ar/automotive/dealerships: Page.goto: Timeout 60000ms exceeded.
+Call log:
+navigating to "https://www.q84sale.com/ar/automotive/dealerships", waiting until "networkidle"
+
+2025-01-16 19:03:03,458 - ERROR - Attempt 1 failed for https://www.q84sale.com/ar/automotive/bikes: Page.goto: Timeout 60000ms exceeded.
+Call log:
+navigating to "https://www.q84sale.com/ar/automotive/bikes", waiting until "networkidle"
+
+2025-01-16 19:04:07,373 - ERROR - Attempt 2 failed for https://www.q84sale.com/ar/automotive/dealerships: Page.goto: Timeout 60000ms exceeded.
+Call log:
+navigating to "https://www.q84sale.com/ar/automotive/dealerships", waiting until "networkidle"
+
+2025-01-16 19:04:08,492 - ERROR - Attempt 2 failed for https://www.q84sale.com/ar/automotive/bikes: Page.goto: Timeout 60000ms exceeded.
+Call log:
+navigating to "https://www.q84sale.com/ar/automotive/bikes", waiting until "networkidle"
+
+2025-01-16 19:04:35,578 - ERROR - Attempt 3 failed for https://www.q84sale.com/ar/automotive/dealerships: Page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.q84sale.com/ar/automotive/dealerships
+Call log:
+navigating to "https://www.q84sale.com/ar/automotive/dealerships", waiting until "networkidle"
+
+2025-01-16 19:04:35,585 - ERROR - Attempt 3 failed for https://www.q84sale.com/ar/automotive/bikes: Page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.q84sale.com/ar/automotive/bikes
+Call log:
+navigating to "https://www.q84sale.com/ar/automotive/bikes", waiting until "networkidle"
+
+2025-01-16 19:06:09,483 - INFO - Browser context created successfully
+2025-01-16 19:06:11,008 - INFO - Attempting to load URL (attempt 1): https://www.q84sale.com/ar/automotive/dealerships
+2025-01-16 19:06:13,269 - INFO - Attempting to load URL (attempt 1): https://www.q84sale.com/ar/automotive/bikes
+2025-01-16 19:06:27,214 - INFO - Successfully loaded page for brand: »Ì  «· „ÊÌ· «·ﬂÊÌ Ì
+2025-01-16 19:06:27,305 - INFO - Found 15 car elements
+2025-01-16 19:06:27,377 - INFO - Successfully loaded page for brand: œ—«Ã«  ‰«—Ì… —Ì«÷Ì…
+2025-01-16 19:06:27,526 - INFO - Found 27 car elements
+2025-01-16 19:06:28,309 - ERROR - Error saving Excel file for «·Êﬂ«·« : No module named 'xlsxwriter'
+2025-01-16 19:06:28,313 - ERROR - Error saving Excel file for œ—«Ã« : No module named 'xlsxwriter'
