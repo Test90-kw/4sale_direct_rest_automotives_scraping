@@ -82,18 +82,12 @@ class NormalMainScraper:
         yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
         try:
-            # Check if the parent folder exists or create it
+            # Ensure a parent folder exists
             parent_folder = "Scraper Data"
-            parent_folder_id = drive_saver.get_folder_id(parent_folder)
-            if not parent_folder_id:
-                parent_folder_id = drive_saver.create_folder(parent_folder)
-                self.logger.info(f"Created parent folder '{parent_folder}'.")
+            parent_folder_id = drive_saver.create_folder(parent_folder)
 
-            # Check if the subfolder for yesterday exists or create it
-            folder_id = drive_saver.get_folder_id(yesterday, parent_folder_id)
-            if not folder_id:
-                folder_id = drive_saver.create_folder(yesterday, parent_folder_id)
-                self.logger.info(f"Created new folder for {yesterday} inside '{parent_folder}'.")
+            # Ensure a subfolder for yesterday's date exists
+            folder_id = drive_saver.create_folder(yesterday, parent_folder_id)
 
             for file in files:
                 for attempt in range(self.upload_retries):
