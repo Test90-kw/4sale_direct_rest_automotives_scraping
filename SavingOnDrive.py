@@ -35,7 +35,7 @@ class SavingOnDrive:
         return file.get('id')
 
     def save_files(self, files):
-        parent_folder_id = '1ayaYWPFnswsOP2nRiDtiwGuy_r43Dr3F'  # ID of "Property Scraper Uploads"
+        parent_folder_id = '1wwVdI2kT2k_j_pScF13PDhm2hd9EvjRN'
 
         yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
         folder_id = self.create_folder(yesterday, parent_folder_id)
