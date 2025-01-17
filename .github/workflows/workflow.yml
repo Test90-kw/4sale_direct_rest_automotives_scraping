@@ -44,7 +44,7 @@ jobs:
         env:
           HIERARCHIAL_GCLOUD_KEY_JSON: ${{ secrets.HIERARCHIAL_GCLOUD_KEY_JSON }}
         run: |
-          python main_part4.py
+          python normal_code_main.py
       
       - name: Upload Logs
         if: always()
