@@ -14,13 +14,16 @@ from pathlib import Path
 class NormalMainScraper:
     def __init__(self, automotives_data: Dict[str, List[Tuple[str, int]]]):
         self.automotives_data = automotives_data
+        self.chunk_size = 2  # Number of automotives processed per chunk
+        self.max_concurrent_links = 2  # Max links processed simultaneously
         self.logger = logging.getLogger(__name__)
         self.setup_logging()
         self.temp_dir = Path("temp_files")
         self.temp_dir.mkdir(exist_ok=True)
         self.upload_retries = 3
-        self.upload_retry_delay = 15  # Increased from 10 to 15 seconds
-        self.page_delay = 3  # Added delay between page requests
+        self.upload_retry_delay = 15  # Retry delay in seconds
+        self.page_delay = 3  # Delay between page requests
+        self.chunk_delay = 10  # Delay between chunks
 
     def setup_logging(self):
         """Initialize logging configuration."""
@@ -34,24 +37,25 @@ class NormalMainScraper:
         )
         self.logger.setLevel(logging.INFO)
 
-    async def scrape_automotive(self, automotive_name: str, urls: List[Tuple[str, int]]) -> List[Dict]:
+    async def scrape_automotive(self, automotive_name: str, urls: List[Tuple[str, int]], semaphore: asyncio.Semaphore) -> List[Dict]:
         """Scrape data for a single automotive category."""
         self.logger.info(f"Starting to scrape {automotive_name}")
         car_data = []
         yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
-        for url_template, page_count in urls:
-            for page in range(1, page_count + 1):
-                url = url_template.format(page)
-                scraper = DetailsScraping(url)
-                try:
-                    cars = await scraper.get_car_details()
-                    for car in cars:
-                        if car.get("date_published", "").split()[0] == yesterday:
-                            car_data.append(car)
-                    await asyncio.sleep(self.page_delay)  # Delay between page requests
-                except Exception as e:
-                    self.logger.error(f"Error scraping {url}: {e}")
+        async with semaphore:
+            for url_template, page_count in urls:
+                for page in range(1, page_count + 1):
+                    url = url_template.format(page)
+                    scraper = DetailsScraping(url)
+                    try:
+                        cars = await scraper.get_car_details()
+                        for car in cars:
+                            if car.get("date_published", "").split()[0] == yesterday:
+                                car_data.append(car)
+                        await asyncio.sleep(self.page_delay)  # Delay between page requests
+                    except Exception as e:
+                        self.logger.error(f"Error scraping {url}: {e}")
 
         return car_data
 
@@ -90,7 +94,7 @@ class NormalMainScraper:
         return uploaded_files
 
     async def scrape_all_automotives(self):
-        """Scrape all automotives and upload the data to Google Drive."""
+        """Scrape all automotives in chunks."""
         self.temp_dir.mkdir(exist_ok=True)
 
         # Setup Google Drive
@@ -105,30 +109,45 @@ class NormalMainScraper:
             self.logger.error(f"Failed to setup Google Drive: {e}")
             return
 
-        tasks = []
-        for automotive_name, automotive_urls in self.automotives_data.items():
-            task = asyncio.create_task(self.scrape_automotive(automotive_name, automotive_urls))
-            tasks.append((automotive_name, task))
-            await asyncio.sleep(2)  # Delay between automotive task creation
+        # Split automotives into chunks
+        automotive_chunks = [
+            list(self.automotives_data.items())[i:i + self.chunk_size]
+            for i in range(0, len(self.automotives_data), self.chunk_size)
+        ]
 
-        pending_uploads = []
-        for automotive_name, task in tasks:
-            car_data = await task
-            if car_data:
-                excel_file = await self.save_to_excel(automotive_name, car_data)
-                if excel_file:
-                    pending_uploads.append(excel_file)
+        semaphore = asyncio.Semaphore(self.max_concurrent_links)
 
-        if pending_uploads:
-            await self.upload_files_with_retry(drive_saver, pending_uploads)
+        for chunk_index, chunk in enumerate(automotive_chunks, 1):
+            self.logger.info(f"Processing chunk {chunk_index}/{len(automotive_chunks)}")
 
-        # Clean up temporary files
-        for file in pending_uploads:
-            try:
-                os.remove(file)
-                self.logger.info(f"Cleaned up local file: {file}")
-            except Exception as e:
-                self.logger.error(f"Error cleaning up {file}: {e}")
+            tasks = []
+            for automotive_name, urls in chunk:
+                task = asyncio.create_task(self.scrape_automotive(automotive_name, urls, semaphore))
+                tasks.append((automotive_name, task))
+                await asyncio.sleep(2)  # Delay between task creation
+
+            pending_uploads = []
+            for automotive_name, task in tasks:
+                car_data = await task
+                if car_data:
+                    excel_file = await self.save_to_excel(automotive_name, car_data)
+                    if excel_file:
+                        pending_uploads.append(excel_file)
+
+            if pending_uploads:
+                await self.upload_files_with_retry(drive_saver, pending_uploads)
+
+                # Clean up uploaded files
+                for file in pending_uploads:
+                    try:
+                        os.remove(file)
+                        self.logger.info(f"Cleaned up local file: {file}")
+                    except Exception as e:
+                        self.logger.error(f"Error cleaning up {file}: {e}")
+
+            if chunk_index < len(automotive_chunks):
+                self.logger.info(f"Waiting {self.chunk_delay} seconds before next chunk...")
+                await asyncio.sleep(self.chunk_delay)
 
 
 if __name__ == "__main__":
