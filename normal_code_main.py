@@ -61,8 +61,12 @@ class NormalMainScraper:
 
     async def save_to_excel(self, automotive_name: str, car_data: List[Dict]) -> str:
         """Save data to an Excel file."""
-        excel_file = self.temp_dir / f"{automotive_name}.xlsx"
+        if not car_data:
+            self.logger.info(f"No data to save for {automotive_name}, skipping Excel file creation.")
+            return None
 
+        excel_file = Path(f"{automotive_name}.xlsx")
+        
         try:
             df = pd.DataFrame(car_data)
             df.to_excel(excel_file, index=False)
@@ -78,11 +82,18 @@ class NormalMainScraper:
         yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
         try:
-            # Check if the folder exists
-            folder_id = drive_saver.get_folder_id(yesterday)
+            # Check if the parent folder exists or create it
+            parent_folder = "Scraper Data"
+            parent_folder_id = drive_saver.get_folder_id(parent_folder)
+            if not parent_folder_id:
+                parent_folder_id = drive_saver.create_folder(parent_folder)
+                self.logger.info(f"Created parent folder '{parent_folder}'.")
+
+            # Check if the subfolder for yesterday exists or create it
+            folder_id = drive_saver.get_folder_id(yesterday, parent_folder_id)
             if not folder_id:
-                folder_id = drive_saver.create_folder(yesterday)
-                self.logger.info(f"Created new folder for {yesterday}")
+                folder_id = drive_saver.create_folder(yesterday, parent_folder_id)
+                self.logger.info(f"Created new folder for {yesterday} inside '{parent_folder}'.")
 
             for file in files:
                 for attempt in range(self.upload_retries):
@@ -90,7 +101,7 @@ class NormalMainScraper:
                         if os.path.exists(file):
                             drive_saver.save_files([file], folder_id=folder_id)
                             uploaded_files.append(file)
-                            self.logger.info(f"Successfully uploaded {file} to Google Drive folder {yesterday}")
+                            self.logger.info(f"Successfully uploaded {file} to Google Drive folder '{yesterday}'")
                             break
                     except Exception as e:
                         self.logger.error(f"Upload attempt {attempt + 1} failed for {file}: {e}")
