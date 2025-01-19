@@ -10,7 +10,6 @@ from SavingOnDrive import SavingOnDrive
 from typing import Dict, List, Tuple
 from pathlib import Path
 
-
 class NormalMainScraper:
     def __init__(self, automotives_data: Dict[str, List[Tuple[str, int]]]):
         self.automotives_data = automotives_data
@@ -56,6 +55,7 @@ class NormalMainScraper:
                         await asyncio.sleep(self.page_delay)  # Delay between page requests
                     except Exception as e:
                         self.logger.error(f"Error scraping {url}: {e}")
+                        continue  # Continue with next page even if current fails
 
         return car_data
 
@@ -82,12 +82,18 @@ class NormalMainScraper:
         yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
         try:
-            # Ensure a parent folder exists
+            # Check if the parent folder exists or create it
             parent_folder = "Scraper Data"
-            parent_folder_id = drive_saver.create_folder(parent_folder)
+            parent_folder_id = drive_saver.get_folder_id(parent_folder)
+            if not parent_folder_id:
+                parent_folder_id = drive_saver.create_folder(parent_folder)
+                self.logger.info(f"Created parent folder '{parent_folder}'.")
 
-            # Ensure a subfolder for yesterday's date exists
-            folder_id = drive_saver.create_folder(yesterday, parent_folder_id)
+            # Check if the subfolder for yesterday exists or create it
+            folder_id = drive_saver.get_folder_id(yesterday, parent_folder_id)
+            if not folder_id:
+                folder_id = drive_saver.create_folder(yesterday, parent_folder_id)
+                self.logger.info(f"Created new folder for {yesterday} inside '{parent_folder}'.")
 
             for file in files:
                 for attempt in range(self.upload_retries):
@@ -101,6 +107,11 @@ class NormalMainScraper:
                         self.logger.error(f"Upload attempt {attempt + 1} failed for {file}: {e}")
                         if attempt < self.upload_retries - 1:
                             await asyncio.sleep(self.upload_retry_delay)
+                            # Refresh the service if there's a connection error
+                            try:
+                                drive_saver.authenticate()
+                            except Exception as auth_error:
+                                self.logger.error(f"Failed to refresh authentication: {auth_error}")
                         else:
                             self.logger.error(f"Failed to upload {file} after {self.upload_retries} attempts")
 
@@ -144,14 +155,17 @@ class NormalMainScraper:
 
             pending_uploads = []
             for automotive_name, task in tasks:
-                car_data = await task
-                if car_data:
-                    excel_file = await self.save_to_excel(automotive_name, car_data)
-                    if excel_file:
-                        pending_uploads.append(excel_file)
+                try:
+                    car_data = await task
+                    if car_data:
+                        excel_file = await self.save_to_excel(automotive_name, car_data)
+                        if excel_file:
+                            pending_uploads.append(excel_file)
+                except Exception as e:
+                    self.logger.error(f"Error processing {automotive_name}: {e}")
 
             if pending_uploads:
-                await self.upload_files_with_retry(drive_saver, pending_uploads)
+                uploaded_files = await self.upload_files_with_retry(drive_saver, pending_uploads)
 
                 # Clean up uploaded files
                 for file in pending_uploads:
@@ -164,7 +178,6 @@ class NormalMainScraper:
             if chunk_index < len(automotive_chunks):
                 self.logger.info(f"Waiting {self.chunk_delay} seconds before next chunk...")
                 await asyncio.sleep(self.chunk_delay)
-
 
 if __name__ == "__main__":
     automotives_data = {
