@@ -10,6 +10,7 @@ class SavingOnDrive:
         self.credentials_dict = credentials_dict
         self.scopes = ['https://www.googleapis.com/auth/drive']
         self.service = None
+        self.parent_folder_id = '1wwVdI2kT2k_j_pScF13PDhm2hd9EvjRN'  # Your parent folder ID
 
     def authenticate(self):
         """Authenticate with Google Drive API."""
@@ -20,17 +21,18 @@ class SavingOnDrive:
             print(f"Authentication error: {e}")
             raise
 
-    def get_folder_id(self, folder_name, parent_id=None):
-        """Get folder ID by name and optional parent ID."""
+    def get_folder_id(self, folder_name):
+        """Get folder ID by name within the parent folder."""
         try:
-            query = f"name='{folder_name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
-            if parent_id:
-                query += f" and '{parent_id}' in parents"
+            query = (f"name='{folder_name}' and "
+                    f"'{self.parent_folder_id}' in parents and "
+                    f"mimeType='application/vnd.google-apps.folder' and "
+                    f"trashed=false")
             
             results = self.service.files().list(
                 q=query,
                 spaces='drive',
-                fields='files(id)'
+                fields='files(id, name)'
             ).execute()
             
             files = results.get('files', [])
@@ -39,15 +41,14 @@ class SavingOnDrive:
             print(f"Error getting folder ID: {e}")
             return None
 
-    def create_folder(self, folder_name, parent_folder_id=None):
-        """Create a new folder in Google Drive."""
+    def create_folder(self, folder_name):
+        """Create a new folder in the parent folder."""
         try:
             file_metadata = {
                 'name': folder_name,
-                'mimeType': 'application/vnd.google-apps.folder'
+                'mimeType': 'application/vnd.google-apps.folder',
+                'parents': [self.parent_folder_id]
             }
-            if parent_folder_id:
-                file_metadata['parents'] = [parent_folder_id]
 
             folder = self.service.files().create(
                 body=file_metadata,
@@ -77,20 +78,17 @@ class SavingOnDrive:
             raise
 
     def save_files(self, files, folder_id=None):
-        """Save multiple files to Google Drive."""
+        """Save files to Google Drive in the specified folder."""
         try:
-            if folder_id:
-                # If folder_id is provided, use it directly
-                for file_name in files:
-                    self.upload_file(file_name, folder_id)
-            else:
-                # Original behavior with hardcoded parent folder
-                parent_folder_id = '1wwVdI2kT2k_j_pScF13PDhm2hd9EvjRN'
+            if not folder_id:
                 yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
-                folder_id = self.create_folder(yesterday, parent_folder_id)
-                
-                for file_name in files:
-                    self.upload_file(file_name, folder_id)
+                folder_id = self.get_folder_id(yesterday)
+                if not folder_id:
+                    folder_id = self.create_folder(yesterday)
+            
+            for file_name in files:
+                self.upload_file(file_name, folder_id)
+            
             print(f"Files uploaded successfully to Google Drive.")
         except Exception as e:
             print(f"Error saving files: {e}")
