@@ -77,40 +77,40 @@ class NormalMainScraper:
             return None
 
     async def upload_files_with_retry(self, drive_saver, files: List[str]) -> List[str]:
-    """Upload files to Google Drive with retry mechanism."""
-    uploaded_files = []
-    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+        """Upload files to Google Drive with retry mechanism."""
+        uploaded_files = []
+        yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
-    try:
-        # Get or create yesterday's folder directly in parent folder
-        folder_id = drive_saver.get_folder_id(yesterday)
-        if not folder_id:
-            folder_id = drive_saver.create_folder(yesterday)
-            self.logger.info(f"Created new folder '{yesterday}'")
+        try:
+            # Get or create yesterday's folder directly in parent folder
+            folder_id = drive_saver.get_folder_id(yesterday)
+            if not folder_id:
+                folder_id = drive_saver.create_folder(yesterday)
+                self.logger.info(f"Created new folder '{yesterday}'")
 
-        for file in files:
-            for attempt in range(self.upload_retries):
-                try:
-                    if os.path.exists(file):
-                        drive_saver.save_files([file], folder_id=folder_id)
-                        uploaded_files.append(file)
-                        self.logger.info(f"Successfully uploaded {file} to Google Drive folder '{yesterday}'")
-                        break
-                except Exception as e:
-                    self.logger.error(f"Upload attempt {attempt + 1} failed for {file}: {e}")
-                    if attempt < self.upload_retries - 1:
-                        await asyncio.sleep(self.upload_retry_delay)
-                        try:
-                            drive_saver.authenticate()
-                        except Exception as auth_error:
-                            self.logger.error(f"Failed to refresh authentication: {auth_error}")
-                    else:
-                        self.logger.error(f"Failed to upload {file} after {self.upload_retries} attempts")
+            for file in files:
+                for attempt in range(self.upload_retries):
+                    try:
+                        if os.path.exists(file):
+                            drive_saver.save_files([file], folder_id=folder_id)
+                            uploaded_files.append(file)
+                            self.logger.info(f"Successfully uploaded {file} to Google Drive folder '{yesterday}'")
+                            break
+                    except Exception as e:
+                        self.logger.error(f"Upload attempt {attempt + 1} failed for {file}: {e}")
+                        if attempt < self.upload_retries - 1:
+                            await asyncio.sleep(self.upload_retry_delay)
+                            try:
+                                drive_saver.authenticate()
+                            except Exception as auth_error:
+                                self.logger.error(f"Failed to refresh authentication: {auth_error}")
+                        else:
+                            self.logger.error(f"Failed to upload {file} after {self.upload_retries} attempts")
 
-    except Exception as e:
-        self.logger.error(f"Error managing Google Drive folder for {yesterday}: {e}")
+        except Exception as e:
+            self.logger.error(f"Error managing Google Drive folder for {yesterday}: {e}")
 
-    return uploaded_files
+        return uploaded_files
 
     async def scrape_all_automotives(self):
         """Scrape all automotives in chunks."""
