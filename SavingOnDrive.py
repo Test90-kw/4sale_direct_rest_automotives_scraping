@@ -5,18 +5,19 @@ from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from datetime import datetime, timedelta
+from googleapiclient.errors import HttpError
 
 class SavingOnDrive:
     def __init__(self, credentials_dict):
         self.credentials_dict = credentials_dict
         self.scopes = ['https://www.googleapis.com/auth/drive']
         self.service = None
-        self.parent_folder_ids = [  # List of parent folders
-            '1wwVdI2kT2k_j_pScF13PDhm2hd9EvjRN',
-            '1wfMeXBP2HlWIlbl399vqSW5XqXIw9v69'
+        self.parent_folder_ids = [  # Updated Parent Folders
+            '1HNoPKZCV_rmrhgJq5CYUQynoSF-zN0_a',  # Confirmed working
+            '1fgJyv-kmfrblul4gvHlfgtOiZ77qlfwj'   # Target folder with upload issues
         ]
         self.setup_logging()
-    
+
     def setup_logging(self):
         """Configure logging."""
         logging.basicConfig(
@@ -24,7 +25,7 @@ class SavingOnDrive:
             format='%(asctime)s - %(levelname)s - %(message)s',
             handlers=[logging.StreamHandler(), logging.FileHandler("drive_upload.log")]
         )
-    
+
     def authenticate(self):
         """Authenticate with Google Drive API."""
         try:
@@ -62,13 +63,20 @@ class SavingOnDrive:
             folder = self.service.files().create(body=folder_metadata, fields='id').execute()
             logging.info(f"Created new folder: {folder_name} (ID: {folder['id']})")
             return folder['id']
-        except Exception as e:
+        except HttpError as e:
+            if e.resp.status == 404:
+                logging.error(f"Parent folder not found (ID: {parent_folder_id}). Skipping this folder.")
+                return None
             logging.error(f"Error getting/creating folder: {e}")
             raise
 
     def upload_file(self, file_name, folder_id):
         """Upload a single file to Google Drive."""
         try:
+            if not folder_id:
+                logging.error(f"Invalid folder ID for file {file_name}. Skipping upload.")
+                return None
+
             file_metadata = {
                 'name': os.path.basename(file_name),
                 'parents': [folder_id]
@@ -86,17 +94,21 @@ class SavingOnDrive:
             raise
 
     def save_files(self, files):
-        """Save files to Google Drive in all parent folders."""
+        """Save files to Google Drive in all valid parent folders."""
         try:
             yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
 
             for parent_folder_id in self.parent_folder_ids:
                 folder_id = self.get_or_create_folder(yesterday, parent_folder_id)
 
+                if not folder_id:
+                    logging.error(f"Skipping uploads to {parent_folder_id} because folder ID retrieval failed.")
+                    continue
+
                 for file_name in files:
                     self.upload_file(file_name, folder_id)
             
-            logging.info(f"All files uploaded successfully to {len(self.parent_folder_ids)} parent folders.")
+            logging.info(f"All files uploaded successfully to valid parent folders.")
         except Exception as e:
             logging.error(f"Error saving files: {e}")
             raise
