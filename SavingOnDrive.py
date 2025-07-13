@@ -13,8 +13,8 @@ class SavingOnDrive:
         self.scopes = ['https://www.googleapis.com/auth/drive']
         self.service = None
         self.parent_folder_ids = [  # Updated Parent Folders
-            '1wwVdI2kT2k_j_pScF13PDhm2hd9EvjRN',  # Confirmed working
-            '1wfMeXBP2HlWIlbl399vqSW5XqXIw9v69'   # Target folder with upload issues
+            '1qnzV3sACpyrADIpRKVQuzAcirvXvjqo1',  # Confirmed working
+            '10nEH6A4H7gvkGBE-81OVXHuGALsw7vab'   # Target folder with upload issues
         ]
         self.setup_logging()
 
